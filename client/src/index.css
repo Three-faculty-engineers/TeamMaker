@@ -1,0 +1,418 @@
+body {
+  background-image: url("https://i.pinimg.com/originals/c2/28/0c/c2280c8e36c4011c6246250a85d6e322.jpg");
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size:cover;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-size: 17px;  
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+form{
+  text-align: center;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  margin: 50px 0px;
+  padding: 50px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  align-self: center;
+
+  background-color: rgba(255, 255, 255, .15);  
+  backdrop-filter: blur(5px);
+ }
+
+.form2{
+  width: 100%;
+}
+
+.button{
+  margin: 20px;
+  padding: 8px 16px;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-size: 18px;
+  text-align: center;
+  align-self: center;
+}
+
+input{
+margin: 10px;
+padding: 8px 16px;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.Task {
+  background-color: #fafafa;
+  border: 1px solid #f5f5f5;
+  margin: 10px;
+  padding: 20px;
+}
+
+.Navbar {
+  width:100%;
+  background-color: black;
+  list-style-type: none;
+  margin: 0;
+  padding: 20px;
+  color: white;
+  overflow: hidden;
+}
+
+.Navli{
+  display: inline;
+  padding: 5px;
+}
+
+.Navli a{
+  display: inline;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+.Navli a:hover{
+  background-color: #111;
+}
+
+.Main{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.PanelDiv{
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  background-color: white;
+  width: 90%;
+  margin: 30px;
+}
+
+.teamList{
+  width:50%;
+}
+
+.teamList a{
+  color:black;
+  text-decoration: none;
+}
+.teamList a:hover{
+  color: #111;
+}
+.teamList ul{
+  list-style-type: none;
+}
+
+.Team{
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  margin: 20px;
+  background-color: white;
+}
+
+.singleTeam{
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  margin: 20px;
+  padding: 20px;
+  width: 80%;
+  background-color: white;
+}
+
+.sidebar{
+  width:100%;
+  background-color: #fafafa;
+  color: black;
+  list-style-type: none;
+  padding: 15px;
+
+  
+  display:flex;
+  flex-direction:row;
+  justify-content: center;
+}
+
+.sidebar li{
+  display: inline;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.clanovi{
+  padding: 10px;
+  margin: 10px;
+  background-color: black;
+  color:white;
+}
+.sprint{
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  border: 1px solid #f5f5f5;
+  margin: 20px;
+  padding: 20px;
+  min-width: 500px;
+  max-width: 800px;
+}
+
+.tinyOption{
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  border: 1px solid #f5f5f5;
+  margin: 20px;
+  padding: 20px;
+  min-width: 250px;
+}
+
+.naslov{
+  background-color: #fafafa;
+  width: 100%;
+}
+
+
+
+.navigacija{
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  background-color: #fafafa;
+  width:20%;
+}
+
+.navigacijaDeo{
+  margin: 10px;
+  padding: 10px;
+  color: #000;
+
+}
+
+.navigacijaDeo:hover{
+  background-color: #eee;
+}
+
+.backlog{
+  margin: 10px;
+  padding: 1em 0;
+  border: 1px solid #f5f5f5;
+  background: #fafafa;
+}
+.backlog h3
+{
+  margin-bottom: 0.5em;
+}
+.createbox{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chart{
+  margin: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  width: 50%;
+}
+
+.chartbox{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sprintlist{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items:flex-start;
+  justify-content: space-around;
+  
+}
+
+.myMessage{
+background:#fafafa;
+margin: 10px;
+padding: 10px;
+border-radius: 6px;
+text-align: left;
+}
+
+.theirMessage{
+  background:#fafafa;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: right;
+}
+
+.myMessageWith{
+text-align: right;
+margin: 20px;
+align-self: flex-end;
+}
+
+.theirMessageWith{
+text-align: left;
+margin: 20px;
+align-self: flex-start;
+}
+
+.messageBox{
+  display: flex;
+  flex-direction: column;
+  background:#eee;
+  height: 500px;
+  overflow-y: scroll;
+}
+
+.sendMessage{
+  display: flex;
+  flex-direction: row;
+  align-items:stretch;
+  width: 100%;
+}
+
+.messButton{
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-size: 18px;
+  text-align: center;
+  width:30%;
+}
+
+.grMess1{
+width:80%;
+}
+
+.grMess2{
+width:20%;
+}
+
+.messPage{
+  display:flex;
+  flex-direction: row;
+  align-items: stretch;
+  padding: 20px;
+  /*background-color: #000000;*/
+  width: 100%;
+}
+
+.messSidebar{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  width:20%;
+  background-color:#fafafa;
+}
+.messComponent{
+  padding: 20px;
+  width: 100%;
+}
+.messComponent:hover{
+  cursor: pointer;
+  background-color: #eee;
+}
+.messRight{
+  padding: 20px;
+  width: 80%;
+}
+.messPageContainer{
+  width:100%;
+}
+.newChatForm{
+  width: 100%;
+}
+.TaskOnList{
+  display: flex;
+  justify-content:flex-start;
+  border-top: 1px solid rgb(174, 172, 172);
+  align-items: center;
+  padding: 0.3em;
+}
+.TaskOnList.Right{
+  justify-content: flex-end;
+}
+.TaskOnList p
+{
+  margin-bottom: 0;
+  margin-left: 0.5em
+}
+.arrowLeft:hover{
+  cursor: pointer;
+}
+.PanelIcon
+{
+  height: 20px;
+  width: 20px;
+}
+center
+{
+  display: flex;
+  align-items: center;
+}
+center img
+{
+  margin-left: 3px;
+}
+
+.settingsForm{
+  padding:20px;
+  margin: 20px;
+  width: 100%;
+}
+
+.notifBox{
+  display:flex;
+  flex-direction: column-reverse;
+  height: 500px;
+  overflow-y: scroll;
+  width: 100%;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  background-color: white;
+  padding: 20px;
+}
+
+.obojenoHover:hover{
+background-color:#eee;
+}
+
+.sprintlist2{
+  height: 250px;
+  overflow-y: scroll;
+}
+.noDots{
+  list-style-type: none;
+}
+
+.search {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  padding: 30px;
+  margin-top: 10px;
+  background-color: #fafafa;
+}
+.searchBar{
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content:space-evenly;
+}
+.searchIcon{
+  margin: 10px;
+}
+
+.prazno{
+  color: #bbbbbb;
+}
+
+.admin{
+  padding: 20px;
+  margin-top: 30px;
+  background-color: #fff;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  width: 80%;
+}
