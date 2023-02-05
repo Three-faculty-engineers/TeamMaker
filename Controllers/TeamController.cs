@@ -51,44 +51,6 @@ namespace WebApi.Controllers
             }
         }
 
-        // [Route("CreateTeam")]
-        // [HttpPost]
-        // public ActionResult CreateTeam([FromBody] Team t) // radi
-        // {
-
-        //     try{
-        //         if(string.IsNullOrEmpty(t.Ime) || string.IsNullOrEmpty(t.Opis))
-        //             return BadRequest("Greska prilikom kreiranja tima");
-
-        //         var username = User.FindFirstValue(ClaimTypes.Name);
-        //         var korisnik = korisnikCollection.Find(k => k.Username == username).FirstOrDefault();
-        //         if(korisnik == null)
-        //             return BadRequest("korisnik ne postoji");
-                
-        //         // Team team = new Team{Ime = t.Ime , Leader = korisnik, Opis = t.Opis};
-        //         Team team = new Team{Ime = t.Ime , Leader = korisnik, LeaderRef=new MongoDBRef("korisnik", korisnik.ID), Opis = t.Opis};
-                
-        //         // if(team.Korisnici == null)
-        //         //     team.Korisnici =  new List<Korisnik>();
-        //         team.KorisniciRef = new List<MongoDBRef>();
-        //         team.KorisniciRef.Add(new MongoDBRef("korisnik", korisnik.ID));
-        //         // team.Korisnici.Add(korisnik);
-                
-        //         // Context.Timovi.Add(team);
-        //         // Context.SaveChanges(); 
-        //         teamCollection.InsertOne(team);
-
-        //         return Ok("Tim je kreiran");
-
-        //     }catch(Exception e){
-
-        //         return BadRequest(e.InnerException.Message);
-
-        //     }
-
-
-        // }
-
         [Route("CreateTeam")]
         [HttpPost]
         public ActionResult CreateTeam([FromBody] Team t) // radi
@@ -168,7 +130,7 @@ namespace WebApi.Controllers
                 .Lookup("korisnik", "korisniciRef", "_id", "korisnici")
                 .Lookup("korisnik", "leaderRef", "_id", "leader")
                 .As<TeamBson>()
-                .Match(x => x.Korisnici.Contains(kor))
+                .Match(x => x.Korisnici.Select(k => k.Username).Contains(username))
                 .ToList();
 
                 if(timovi == null)
@@ -204,7 +166,7 @@ namespace WebApi.Controllers
                 .Aggregate()
                 .Lookup("korisnik", "korisniciRef", "_id", "korisnici")
                 .As<TeamBson>()
-                .Match(t => (t.ID == teamID) && (t.Korisnici.Contains(korisnik)))
+                .Match(t => (t.ID == teamID) && (t.Korisnici.Select(k => k.Username).Contains(username)))
                 .FirstOrDefault();
 
                 if(team != null)
