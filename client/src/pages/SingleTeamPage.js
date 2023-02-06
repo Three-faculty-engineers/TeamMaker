@@ -40,7 +40,7 @@ function SingleTeamPage()
         response.json().then(team => {
           let usernameGlobal = sessionStorage.getItem("username")
           //provera da li je trenutni korisnik, leader ovog tima
-          if(team.leader.username.trim() === usernameGlobal.trim()){
+          if(team.leader[0].username.trim() === usernameGlobal.trim()){
               setIsLeader(true)
           }
           setTeam(team)

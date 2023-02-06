@@ -76,7 +76,7 @@ function TeamLeader(props) {
       <div key={request.id} className='sprint'>
         <p><img className="PanelIcon" src={UserIcon}/> User:</p><p>{request.username}</p> 
         <p>Message:</p> <p>{request.poruka}</p> 
-        <Button variant="dark" onClick={() => {acceptRequest(request.id, request.username)}}>AcceptUser</Button> 
+        <Button variant="dark" onClick={() => {acceptRequest(request.id, request.korisnik.username)}}>AcceptUser</Button> 
       </div>))}
       </div>
       

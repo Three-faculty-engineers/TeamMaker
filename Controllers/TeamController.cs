@@ -165,6 +165,7 @@ namespace WebApi.Controllers
                 var team = teamCollection
                 .Aggregate()
                 .Lookup("korisnik", "korisniciRef", "_id", "korisnici")
+                .Lookup("korisnik", "leaderRef", "_id", "leader")
                 .As<TeamBson>()
                 .Match(t => (t.ID == teamID) && (t.Korisnici.Select(k => k.Username).Contains(username)))
                 .FirstOrDefault();
@@ -195,7 +196,7 @@ namespace WebApi.Controllers
                 .Lookup("korisnik", "korisniciRef", "_id", "korisnici")
                 .Lookup("korisnik", "leaderRef", "_id", "leader")
                 .As<TeamBson>()
-                .Match(x => x.NeedsMembers == true && !x.Korisnici.Contains(korisnik))
+                .Match(x => x.NeedsMembers == true && !x.Korisnici.Select(k => k.Username).Contains(username))
                 .ToList();
 
                 if(timovi == null)
@@ -256,7 +257,7 @@ namespace WebApi.Controllers
                     return BadRequest("greska");
 
                 
-                if(team.Korisnici.Contains(user))
+                if(team.Korisnici.Select(k => k.ID).Contains(userID))
                 {
                     team.Korisnici.Remove(user);
                     team.KorisniciRef.Remove(ObjectId.Parse(user.ID));

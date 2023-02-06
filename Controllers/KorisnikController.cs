@@ -184,6 +184,11 @@ namespace WebApi.Controllers
                     numBytesRequested: 256 / 8));
                 kor.Sifra = hashed;
                 kor.Salt = Convert.ToBase64String(salt);
+
+                kor.OceneRcv = new List<Ocena>();
+                kor.OceneSnd = new List<Ocena>();
+                kor.PorukeRcv = new List<Poruka>();
+                kor.PorukeSnd = new List<Poruka>();
                 
                 korisnikCollection.InsertOne(kor);
                 return Ok("Korisnik je uspesno registrovan");
