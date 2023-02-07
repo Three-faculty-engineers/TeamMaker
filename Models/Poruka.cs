@@ -13,16 +13,19 @@ namespace Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public int ID { get; set; }
+        public string ID { get; set; }
 
-        [BsonElement("korisnikSnd")]
-        public MongoDBRef KorisnikSndRef { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string KorisnikSndRef { get; set; }
 
-        [BsonIgnore]
-        public Korisnik KorisnikSnd { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string KorisnikRcvRef { get; set; }
 
-        [BsonElement("korisnikRcv")]
-        public MongoDBRef KorisnikRcvRef { get; set; }
+        [BsonElement("korisniksnd")]
+        public List<Korisnik> KorisnikSnd { get; set; }
+
+        [BsonElement("korisnikrcv")]
+        public List<Korisnik> KorisniRcv { get; set; }
 
         [BsonElement("vreme")]
         public DateTime Vreme {get; set;}

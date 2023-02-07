@@ -86,6 +86,11 @@ namespace Models
         [BsonElement("invites")]
         public List<Invite> Invites { get; set; }
 
+        public static implicit operator MongoDBRef(Korisnik v)
+        {
+            throw new NotImplementedException();
+        }
+
         // [BsonElement("objave")]
         // public List<Objava> Objave  {get; set; }
     }

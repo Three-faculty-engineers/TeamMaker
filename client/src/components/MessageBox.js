@@ -23,7 +23,8 @@ function MessageBox() {
         fetch(`https://localhost:7013/Poruka/GetChats`, request).then(response => {
             if(response.ok)
                 response.json().then((Chats) => {
-                    setChats(Chats)
+                    setChats(Chats);
+                    console.log(chats);
                 })
         })
 
