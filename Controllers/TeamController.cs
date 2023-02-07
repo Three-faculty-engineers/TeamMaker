@@ -64,7 +64,7 @@ namespace WebApi.Controllers
                 if(korisnik == null)
                     return BadRequest("korisnik ne postoji");
                 
-                Team team = new Team{Ime = t.Ime , LeaderRef=ObjectId.Parse(korisnik.ID), Opis = t.Opis, Objave = new List<Objava>(), Invites = new List<Invite>(), Sprints = new List<Sprint>()};
+                Team team = new Team{Ime = t.Ime , LeaderRef=ObjectId.Parse(korisnik.ID), Opis = t.Opis, Objave = new List<Objava>(), Invites = new List<Invite>(), Sprints = new List<Sprint>(), Tasks = new List<Models.Task>()};
                 
                 team.KorisniciRef = new List<ObjectId>();
                 team.KorisniciRef.Add(ObjectId.Parse(korisnik.ID));

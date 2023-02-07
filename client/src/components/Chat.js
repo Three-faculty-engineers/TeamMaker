@@ -24,21 +24,21 @@ function Chat(props) {
             method: 'GET',
             headers: {'Authorization': `bearer ${sessionStorage.getItem("jwt")}`}   
         } 
-        const myInterval = setInterval(() => {
-            setPoruke([])
-        }, 1000);
+        // const myInterval = setInterval(() => {
+        //     setPoruke([])
+        // }, 1000);
           // clear out the interval using the id when unmounting the component
 
-          if(poruke.length == 0){
+        //   if(poruke.length == 0){
             fetch(`https://localhost:7013/Poruka/GetPorukeIzmedjuDvaKor/${props.kor2ID}`, request).then(response => {
                 if(response.ok)
                 response.json().then((porukelocal) => {
                     setPoruke(porukelocal)      
                 })
             })
-        }
-        return () => clearInterval(myInterval);
-    }, [poruke])
+        // }
+        // return () => clearInterval(myInterval);
+    }, [])
 
     const onSubmit = (event) => {
         event.preventDefault()
@@ -58,8 +58,10 @@ function Chat(props) {
             if(response.ok)
             {
                 alert("Msg sent")
-                setPoruke([])
             }
+            return response.json();
+        }).then(data => {
+            setPoruke([...poruke, {korisnikSnd: {username: data.userSent}, id: "0", tekst: data.txt, vreme: new Date()}])
         })
       
       

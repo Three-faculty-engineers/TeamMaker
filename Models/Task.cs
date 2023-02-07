@@ -12,7 +12,7 @@ namespace Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public int ID { get; set; }
+        public string ID { get; set; }
 
         [BsonElement("ime")]
         public string Ime { get; set; }
@@ -36,7 +36,8 @@ namespace Models
         public Sprint Sprint { get; set; }
 
         [BsonElement("korisnik")]
-        public MongoDBRef KorisnikRef { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string KorisnikRef { get; set; }
         
         [BsonIgnore]
         public Korisnik Korisnik { get; set; }

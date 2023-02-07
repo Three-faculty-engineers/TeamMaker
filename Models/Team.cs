@@ -40,7 +40,7 @@ namespace Models
         [BsonElement("opis")]
         public string Opis { get; set; }
 
-        [BsonIgnore]
+        [BsonElement("taskovi")]
         public List<Task> Tasks { get; set; }
 
         [BsonElement("objave")]
