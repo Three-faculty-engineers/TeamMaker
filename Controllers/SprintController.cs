@@ -115,7 +115,7 @@ namespace WebApi.Controllers
             {
                 foreach(var teamID in korisnik.TeamsRef)
                 {
-                    Team team = (Team)teamCollection.Find(t => t.ID == teamID.ToString());   
+                    Team team = (Team)teamCollection.Find(t => t.ID == teamID.ToString()).FirstOrDefault();   
                     foreach(var sprint in team.Sprints)
                     {
                         if(sprint.EndSprint < DateTime.Now && sprint.Status == 0)
