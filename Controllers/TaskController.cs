@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
-
+using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace WebApi.Controllers
 {
@@ -15,10 +16,16 @@ namespace WebApi.Controllers
     public class TaskController : ControllerBase
     {
         
-        // public TeamMakerContext Context {get;set;}
-        // public TaskController(TeamMakerContext context){
-        //         Context=context;
-        // }
+        
+        private IMongoCollection<Korisnik> korisnikCollection;
+        private IMongoCollection<Team> teamCollection;
+        public TeamMakerContext Context {get;set;}
+        public TaskController(TeamMakerContext context){
+                Context = context;
+                DataProvider dp = new DataProvider();
+                korisnikCollection = dp.ConnectToMongo<Korisnik>("korisnik");
+                teamCollection = dp.ConnectToMongo<Team>("team");
+        }
         
         // [HttpGet]
         // [Route("GetTasks/{teamID}")]
@@ -60,6 +67,8 @@ namespace WebApi.Controllers
         //         return BadRequest(e.Message);
         //     }
         // }
+
+
         // [HttpGet]
         // [Route("GetTasksWithStatus/{teamID}/{status}")]
         // public ActionResult GetTasks([FromRoute] int teamID, [FromRoute] int status)
