@@ -34,9 +34,6 @@ namespace WebApi.Controllers
             {
               
                 var username = User.FindFirstValue(ClaimTypes.Name);
-            
-                // var team = Context.Timovi.Where(t => (t.ID == teamID) && (t.Leader.Username == username))
-                //                         .FirstOrDefault();
 
                 var team = teamCollection
                     .Aggregate()
@@ -47,25 +44,8 @@ namespace WebApi.Controllers
                                        
                 if(team == null)
                     return BadRequest("Team ne postoji");
-          
-                
-                // var tasks = Context.Taskovi  .Include(t => t.Korisnik)
-                //                             .Include(t => t.Team)
-                //                             .Where(t => t.Team == team)
-                //                             .Select(t => new {
-                //                                 ID = t.ID,
-                //                                 Ime = t.Ime,
-                //                                 Opis = t.Opis,
-                //                                 Status = t.Status,                                               
-                //                                 Korisnik = t.Korisnik == null ? null : new {
-                //                                                                                 ID = t.Korisnik.ID,
-                //                                                                                 Ime = t.Ime
-                //                                                                             }
-                                            
-                //                             })
-                //                         .ToList();
 
-                var tasks = team.Tasks.Select(t => new {
+                var tasks = team.Sprints.SelectMany(s => s.Taskovi).Select(t => new {
                     ID = t.ID,
                     Ime = t.Ime,
                     Opis = t.Opis,
@@ -84,38 +64,24 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Route("GetTasksWithStatus/{teamID}/{status}")]
-        public ActionResult GetTasks([FromRoute] string teamID, [FromRoute] int status)
+        public ActionResult GetTasksWithStatus([FromRoute] string teamID, [FromRoute] int status)
         {
             try
             {
                
                 var username = User.FindFirstValue(ClaimTypes.Name);
-                //neg!!!!
-                // var team = Context.Timovi.Where(t => (t.ID == teamID) && (t.Leader.Username == username))
-                //                         .FirstOrDefault();
                 var team = teamCollection
                     .Aggregate()
                     .Lookup("korisnik", "leaderRef", "_id", "leader")
                     .As<TeamBson>()
                     .Match(t => t.ID == teamID && t.Leader[0].Username == username)
+                    .Project<TeamBson>(Builders<TeamBson>.Projection.Include(t => t.Sprints))
                     .FirstOrDefault();
                                     
                 if(team == null)
                     return BadRequest("Team ne postoji");
-         
-                
-                // var tasks = Context.Taskovi .Include(t => t.Team)
-                //                             .Where(t => (t.Team == team) && (t.Status==status))
-                //                             .Select(t => new {
-                //                                 ID = t.ID,
-                //                                 Ime = t.Ime,
-                //                                 Opis = t.Opis,
-                //                                 Status = t.Status,                                               
-                                                                                    
-                //                             })
-                //                         .ToList();
 
-                var tasks = team.Tasks
+                var tasks = team.Sprints.SelectMany(s => s.Taskovi)
                     .ToList()
                     .FindAll(t => t.Status == status)
                     .Select(t => new {
@@ -145,7 +111,6 @@ namespace WebApi.Controllers
               
 
                 var username = User.FindFirstValue(ClaimTypes.Name);
-                // var team = Context.Timovi.Include(t => t.Korisnici).Where(t => (t.ID == teamID) && (t.Leader.Username == username)).FirstOrDefault();
                 var team = teamCollection
                     .Aggregate()
                     .Lookup("korisnik", "leaderRef", "_id", "leader")
@@ -156,13 +121,12 @@ namespace WebApi.Controllers
                 if(team == null)
                     return BadRequest("Team ne postoji");
 
-                // task.Team = team;
-                // task.Korisnik = null;
+                task.ID = ObjectId.GenerateNewId().ToString();
 
-                // Context.Taskovi.Add(task);
-                // await Context.SaveChangesAsync();
-
-                await teamCollection.UpdateOneAsync(Builders<Team>.Filter.Eq(t => t.ID, teamID), Builders<Team>.Update.Push<Models.Task>(t => t.Tasks, task));
+                await teamCollection.UpdateOneAsync(
+                    Builders<Team>.Filter.Eq(t => t.ID, teamID) & 
+                    Builders<Team>.Filter.ElemMatch(t => t.Sprints, s => s.ID == task.Sprint.ID), 
+                    Builders<Team>.Update.Push("sprints.$.taskovi", task));
 
                 return Ok(task);
             }
@@ -181,24 +145,18 @@ namespace WebApi.Controllers
 
             try
             {
-                // var korisnik = Context.Korisnici.Where(k => k.Username == username).Include(k => k.Teams).FirstOrDefault();
                 var korisnik = korisnikCollection.Find(k => k.Username == username).FirstOrDefault();
-                                
-                // var task = Context.Taskovi.Where(t => t.ID == taskID).Include(t => t.Team).ThenInclude(t => t.Korisnici).Include(t => t.Sprint).FirstOrDefault();
-                var team = teamCollection.Find(Builders<Team>.Filter.ElemMatch(t => t.Tasks, t => t.ID == taskID)).FirstOrDefault();
 
+                var team = teamCollection
+                    .Find(Builders<Team>.Filter.ElemMatch(t => t.Sprints, t => t.Taskovi.Select(t => t.ID).Contains(taskID)))
+                    .Project<Team>(Builders<Team>.Projection.Include(t => t.Sprints).Include(t => t.KorisniciRef))
+                    .FirstOrDefault();
+
+                var sprintIndex = team.Sprints.FindIndex(s => s.Taskovi.Select(t => t.ID).Contains(taskID));
                 
-                // bool flag = true;
-                // foreach(var team in korisnik.Teams)
-                // {                   
-                //     if(team.ID == task.Team.ID)
-                //         flag = false;
+                var taskIndex = team.Sprints[sprintIndex].Taskovi.FindIndex(t => t.ID == taskID);
 
-                // }
-
-                var index = team.Tasks.FindIndex(t => t.ID == taskID);
-
-                if(index == -1 || team.Tasks[index].Status != 1)
+                if(taskIndex == -1 || team.Sprints[sprintIndex].Taskovi[taskIndex].Status != 1)
                 {
                     return BadRequest("Greska");
                 }
@@ -208,21 +166,14 @@ namespace WebApi.Controllers
                     return BadRequest("Greska");
                 }
 
-                team.Tasks[index].Status++;
+                team.Sprints[sprintIndex].Taskovi[taskIndex].Status++;
+                team.Sprints[sprintIndex].Taskovi[taskIndex].KorisnikRef = korisnik.ID;
 
-                teamCollection.UpdateOne(Builders<Team>.Filter.Eq(t => t.ID, team.ID), Builders<Team>.Update.Set(t => t.Tasks, team.Tasks));
+                teamCollection.UpdateOne(
+                    Builders<Team>.Filter.Eq(t => t.ID, team.ID) & 
+                    Builders<Team>.Filter.ElemMatch(t => t.Sprints, s => s.ID == team.Sprints[sprintIndex].ID), 
+                    Builders<Team>.Update.Set("sprints.$.taskovi", team.Sprints[sprintIndex].Taskovi));
 
-                // if(task == null || task.Status != 1 || flag || task.Sprint.Status == 1)
-                //     return BadRequest("Greska");
-                
-                // if(!task.Team.Korisnici.Contains(korisnik))
-                //     return BadRequest("Greska");
-
-
-                // task.Status++;
-                // task.Korisnik = korisnik;
-
-                // Context.SaveChanges();
                 return Ok("Task je preuzet");
             }
             catch(Exception e)
@@ -239,15 +190,18 @@ namespace WebApi.Controllers
 
             try
             {
-                // var korisnik = Context.Korisnici.Where(k => k.Username == username).Include(k => k.Teams).FirstOrDefault();
                 var korisnik = korisnikCollection.Find(k => k.Username == username).FirstOrDefault();
-                
-                // var task = Context.Taskovi.Where(t => t.ID == taskID).Include(t => t.Team).Include(t => t.Sprint).FirstOrDefault();
-                var team = teamCollection.Find(Builders<Team>.Filter.ElemMatch(t => t.Tasks, t => t.ID == taskID)).FirstOrDefault();
 
-                var index = team.Tasks.FindIndex(t => t.ID == taskID);
+                var team = teamCollection
+                    .Find(Builders<Team>.Filter.ElemMatch(t => t.Sprints, t => t.Taskovi.Select(t => t.ID).Contains(taskID)))
+                    .Project<Team>(Builders<Team>.Projection.Include(t => t.Sprints).Include(t => t.KorisniciRef))
+                    .FirstOrDefault();
 
-                if(index == -1 || team.Tasks[index].Status != 2)
+                var sprintIndex = team.Sprints.FindIndex(s => s.Taskovi.Select(t => t.ID).Contains(taskID));
+
+                var taskIndex = team.Sprints[sprintIndex].Taskovi.FindIndex(t => t.ID == taskID);
+
+                if(taskIndex == -1 || team.Sprints[sprintIndex].Taskovi[taskIndex].Status != 2)
                 {
                     return BadRequest("Greska");
                 }
@@ -257,27 +211,13 @@ namespace WebApi.Controllers
                     return BadRequest("Greska");
                 }
 
-                team.Tasks[index].Status++;
+                team.Sprints[sprintIndex].Taskovi[taskIndex].Status++;
 
-                teamCollection.UpdateOne(Builders<Team>.Filter.Eq(t => t.ID, team.ID), Builders<Team>.Update.Set(t => t.Tasks, team.Tasks));
+                teamCollection.UpdateOne(
+                    Builders<Team>.Filter.Eq(t => t.ID, team.ID) & 
+                    Builders<Team>.Filter.ElemMatch(t => t.Sprints, s => s.ID == team.Sprints[sprintIndex].ID), 
+                    Builders<Team>.Update.Set("sprints.$.taskovi", team.Sprints[sprintIndex].Taskovi));
 
-                
-                // bool flag = true;
-                // foreach(var t in korisnik.Taskovi)
-                // {                   
-                //     if(t.ID == task.ID)
-                //         flag = false;
-                // }
-
-                // if(task == null || task.Status != 2 || flag || task.Sprint.Status == 1)
-                //     return BadRequest("Greska");
-                
-                // if(!task.Team.Korisnici.Contains(korisnik))
-                //     return BadRequest("Greska");
-                    
-                // task.Status++;
-
-                // Context.SaveChanges();
                 return Ok("Task je preuzet");
             }
             catch(Exception e)
@@ -298,43 +238,40 @@ namespace WebApi.Controllers
             {
             
                 var leader = korisnikCollection.Find(k => k.Username == username).FirstOrDefault();
-                
-                
-                // var task = Context.Taskovi.Where(t => t.ID == taskID).Include(t => t.Team).Include(t => t.Sprint).FirstOrDefault();
 
-                var team = teamCollection.Find(Builders<Team>.Filter.ElemMatch(t => t.Tasks, t => t.ID == taskID)).FirstOrDefault();
+                var team = teamCollection
+                    .Find(Builders<Team>.Filter.ElemMatch(t => t.Sprints, t => t.Taskovi.Select(t => t.ID).Contains(taskID)))
+                    .Project<Team>(Builders<Team>.Projection.Include(t => t.Sprints).Include(t => t.KorisniciRef).Include(t => t.LeaderRef))
+                    .FirstOrDefault();
 
-                var index = team.Tasks.FindIndex(t => t.ID == taskID);
+                var sprintIndex = team.Sprints.FindIndex(s => s.Taskovi.Select(t => t.ID).Contains(taskID));
+                
+                var taskIndex = team.Sprints[sprintIndex].Taskovi.FindIndex(t => t.ID == taskID);
 
                 if(team.LeaderRef != ObjectId.Parse(leader.ID))
                 {
                     return BadRequest("Greska");
                 }
 
-                if(index == -1 || team.Tasks[index].Status != 3)
+
+                if(taskIndex == -1 || team.Sprints[sprintIndex].Taskovi[taskIndex].Status != 3)
                 {
                     return BadRequest("Greska");
                 }
 
+                
                 if(!team.KorisniciRef.Contains(ObjectId.Parse(leader.ID)))
                 {
                     return BadRequest("Greska");
                 }
 
-                team.Tasks[index].Status++;
+                team.Sprints[sprintIndex].Taskovi[taskIndex].Status++;
 
-                teamCollection.UpdateOne(Builders<Team>.Filter.Eq(t => t.ID, team.ID), Builders<Team>.Update.Set(t => t.Tasks, team.Tasks));
-                
-                // bool flag = true;
-                // if(task.Team.Leader.ID == leader.ID)
-                //     flag = false;
-
-                // if(task == null || task.Status != 3 || flag || task.Sprint.Status == 1)
-                //     return BadRequest("Greska");
+                teamCollection.UpdateOne(
+                    Builders<Team>.Filter.Eq(t => t.ID, team.ID) & 
+                    Builders<Team>.Filter.ElemMatch(t => t.Sprints, s => s.ID == team.Sprints[sprintIndex].ID), 
+                    Builders<Team>.Update.Set("sprints.$.taskovi", team.Sprints[sprintIndex].Taskovi));
                     
-                // task.Status++;
-
-                // Context.SaveChanges();
                 return Ok("Task je preuzet");
             }
             catch(Exception e)

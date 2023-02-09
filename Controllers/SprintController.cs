@@ -37,9 +37,6 @@ namespace WebApi.Controllers
         {
             try
             {
-
-
-                
                 var username = User.FindFirstValue(ClaimTypes.Name);
                 var korisnik = korisnikCollection.Find(k => k.Username == username).FirstOrDefault();
 
@@ -49,7 +46,7 @@ namespace WebApi.Controllers
                     .Aggregate()
                     .Lookup("korisnik", "korisniciRef", "_id", "korisnici")
                     .As<TeamBson>()
-                    .Match(t => t.ID == teamID && t.Korisnici.Contains(korisnik))              
+                    .Match(t => t.ID == teamID && t.Korisnici.Select(k => k.Username).Contains(username))
                     .FirstOrDefault();
 
 
@@ -57,7 +54,7 @@ namespace WebApi.Controllers
                     return BadRequest("tim ne postoji");
 
 
-                if(!team.Korisnici.Contains(korisnik))
+                if(!team.Korisnici.Select(k => k.Username).Contains(username))
                     return BadRequest("korisnik ne pripada timu");
 
                 return Ok(team.Sprints);
@@ -78,22 +75,14 @@ namespace WebApi.Controllers
                 
                 var username = User.FindFirstValue(ClaimTypes.Name);
                 var korisnik = korisnikCollection.Find(k => k.Username == username).FirstOrDefault();
-//                var invites = (await teamCollection.FindAsync(Builders<Team>.Filter.ElemMatch(t => t.Invites, i => i.KorisnikRef == ObjectId.Parse(k.ID)))).ToList().Select(t => t.Invites.Find(i => i.KorisnikRef == ObjectId.Parse(k.ID)));
-                
                 
                 var sprint = (teamCollection
                             .Aggregate()
                             .Lookup("korisnik", "korisniciRef", "_id", "korisnici")
                             .As<TeamBson>()
                             .Match( Builders<TeamBson>.Filter.ElemMatch(t => t.Sprints, s => s.ID == sprintID) & 
-                                    Builders<TeamBson>.Filter.ElemMatch(t => t.Korisnici, k => k.ID == korisnik.ID)))//t.Korisnici.Select(k => k.Username).Contains(username)
+                                    Builders<TeamBson>.Filter.ElemMatch(t => t.Korisnici, k => k.ID == korisnik.ID)))
                                                             .FirstOrDefault().Sprints.FirstOrDefault(s => s.ID == sprintID);
-                
-                // var sprint = Context.Sprints.Include(t => t.Taskovi)
-                //                             .Include(t => t.Team)
-                //                             .ThenInclude(t => t.Korisnici)
-                //                             .Where(t => t.ID == sprintID && t.Team.Korisnici.Contains(korisnik))
-                //                             .FirstOrDefault();
 
                 if(sprint == null)
                     return BadRequest("sprint ne postoji");
@@ -125,11 +114,9 @@ namespace WebApi.Controllers
                         }
 
                     }
-                    teamCollection.ReplaceOne(Builders<Team>.Filter.Eq(t => t.ID, team.ID), team);//.InsertOne(s);
+                    teamCollection.ReplaceOne(Builders<Team>.Filter.Eq(t => t.ID, team.ID), team);
 
                 }
-
-                //Context.SaveChanges();
             }
             catch(Exception e){
 
@@ -142,18 +129,13 @@ namespace WebApi.Controllers
         {
             try
             {
-                
-                var username = User.FindFirstValue(ClaimTypes.Name);
+                var username = User.FindFirstValue(ClaimTypes.Name);   
                 var team = teamCollection
                             .Aggregate()
                             .Lookup("korisnik", "leaderRef", "_id", "leader")
                             .As<TeamBson>().Match(t => (t.ID == teamID) &&
-                                                     t.Leader.Select(l => l.Username).Equals(username))
+                                                     t.Leader.Select(l => l.Username).ToList()[0] == username)
                             .FirstOrDefault();
-                            //.Match( Builders<TeamBson>.Filter.(t => t., k => k.ID == korisnik.ID)
-
-
-                //var team = Context.Timovi.Include(t => t.Korisnici).Include(t => t.Leader).Where(t => (t.ID == teamID) && (t.Leader.Username == username)).FirstOrDefault();
 
                 if(team == null)
                     return BadRequest("Team ne postoji");
@@ -161,28 +143,30 @@ namespace WebApi.Controllers
                 if((DateTime)sprint.EndSprint < DateTime.Now || (DateTime)sprint.StartSprint > (DateTime)sprint.EndSprint)
                     return BadRequest("Datum los");
 
-                Sprint s = new Sprint();
-                s.Opis = sprint.Opis;
-                s.StartSprint = (DateTime)sprint.StartSprint;
-                s.EndSprint = (DateTime)sprint.EndSprint;
-                s.Status = sprint.Status;
-                s.Team = team;
-                s.Taskovi = new List<Models.Task>();
+                // Sprint s = new Sprint();
+                // s.ID = ObjectId.GenerateNewId().ToString();
+                // s.Opis = sprint.Opis;
+                // s.StartSprint = (DateTime)sprint.StartSprint;
+                // s.EndSprint = (DateTime)sprint.EndSprint;
+                // s.Status = sprint.Status;
+                // s.Team = team;
+                // s.Taskovi = new List<Models.Task>();
+                sprint.ID = ObjectId.GenerateNewId().ToString();
+                sprint.Team = team;
+                sprint.Taskovi = new List<Models.Task>();
+
 
                 foreach(var t in  sprint.Taskovi)
                 {
-                    //var task = Context.Taskovi.Where(k => (k.ID == t.ID) && (k.Status == 0)).FirstOrDefault();
-                    Models.Task task = team.Tasks.Where(x => (x.ID == t.ID) && (x.Status == 0)).FirstOrDefault(); //Builders<TeamBson>.Filter.ElemMatch(t => t.Korisnici, k => k.ID == korisnik.ID))
+                    Models.Task task = team.Tasks.Where(x => (x.ID == t.ID) && (x.Status == 0)).FirstOrDefault();
                     if(task != null)
                     {
-//teamCollection.FindOneAndUpdate(Builders<Team>.Filter.Eq(t => t.ID, tim.ID), Builders<Team>.Update.Push<Invite>(t => t.Invites, invite));
                         task.Status++;
-                        s.Taskovi.Add(task);
+                        sprint.Taskovi.Add(task);
 
                     }
                 }
-                teamCollection.UpdateOne(Builders<Team>.Filter.Eq(t => t.ID, teamID), Builders<Team>.Update.Push(t => t.Sprints, sprint));//.InsertOne(s);
-                //Context.SaveChanges();
+                teamCollection.UpdateOne(Builders<Team>.Filter.Eq(t => t.ID, teamID), Builders<Team>.Update.Push(t => t.Sprints, sprint));
 
                 return Ok("sprint posted");
 
