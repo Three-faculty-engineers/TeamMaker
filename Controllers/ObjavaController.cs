@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace WebApi.Controllers
 {
@@ -14,105 +16,127 @@ namespace WebApi.Controllers
 
     public class ObjavaController : ControllerBase
     {
-        // public TeamMakerContext Context {get;set;}
+        public TeamMakerContext Context {get;set;}
 
-        // public ObjavaController(TeamMakerContext context){
-        //     Context = context;
-        // }
+        private IMongoCollection<Objava> objavaCollection;
+        private IMongoCollection<Korisnik> korisnikCollection;
+        private IMongoCollection<Team> teamCollection;
 
-        // [HttpGet]
-        // [Route("GetObjave/{teamID}")]
-        // public ActionResult GetObjave([FromRoute]int teamID){
+        public ObjavaController(TeamMakerContext context){
+            Context = context;
+            DataProvider dp = new DataProvider();
+            objavaCollection = dp.ConnectToMongo<Objava>("objava");
+            korisnikCollection = dp.ConnectToMongo<Korisnik>("korisnik");
+            teamCollection = dp.ConnectToMongo<Team>("team");
+        }
 
-        //     try{
+        [HttpGet]
+        [Route("GetObjave/{teamID}")]
+        public ActionResult GetObjave([FromRoute]string teamID){
 
-        //         var username = User.FindFirstValue(ClaimTypes.Name);
-        //         var korisnik=Context.Korisnici.Where( k => k.Username == username ).FirstOrDefault();
+            try{
 
-        //         var team = Context.Timovi.Include(t => t.Korisnici).Where( t=> t.ID == teamID).FirstOrDefault();
-                
-        //         if(!team.Korisnici.Contains(korisnik))
-        //             return BadRequest("korisnik ne pripada timu");
+                var username = User.FindFirstValue(ClaimTypes.Name);
+                var korisnik = korisnikCollection.Find(k => k.Username == username).FirstOrDefault();
 
-        //         var objave = Context.Objave.Include(o=>o.Korisnik)
-        //                                     .Where(o=>o.Team.ID==teamID)
-        //                                     .ToList()
-        //                                     .Select(o => new {
-        //                                         ID = o.ID,
-        //                                         Korisnik = new {ID = o.Korisnik.ID, Username = o.Korisnik.Username},
-        //                                         Vreme = o.Vreme,
-        //                                         Poruka = o.Poruka
-        //                                     });
+                var team = teamCollection.Find(t => t.ID == teamID).FirstOrDefault();
+
+
+                if(!team.KorisniciRef.Contains(ObjectId.Parse(korisnik.ID)))
+                    return BadRequest("korisnik ne pripada timu");
+
+                var objave = team.Objave.ToList().Select(o => new {
+                                                        ID = o.ID,
+                                                        Korisnik = new {ID = korisnik.ID, Username = korisnik.Username},
+                                                        Vreme = o.vreme,
+                                                        Poruka = o.poruka
+                });
+         
                                             
 
-        //         return Ok(objave);
-        //     }
-        //     catch(Exception e)
-        //     {
-        //         return BadRequest(e.Message);
-        //     }
+                return Ok(objave);
+            }
+            catch(Exception e)
+            {
+                return BadRequest(e.Message);
+            }
 
-        // }
+        }
 
 
-        // [Route("CreateObjava/{teamID}/{poruka}")]
-        // [HttpPost]
+        [Route("CreateObjava/{teamID}/{poruka}")]
+        [HttpPost]
        
-        // public ActionResult CreateObjava([FromRoute] int teamID, [FromRoute] string poruka)
-        // {
-        //     try{
+        public ActionResult CreateObjava([FromRoute] string teamID, [FromRoute] string poruka)
+        {
+            try{
 
-        //         var username = User.FindFirstValue(ClaimTypes.Name);
-        //         var korisnik=Context.Korisnici.Where( k => k.Username == username ).FirstOrDefault();
+                var username = User.FindFirstValue(ClaimTypes.Name);
+                var korisnik = korisnikCollection.Find(k => k.Username == username).FirstOrDefault();
+       
+                 var team = teamCollection.Aggregate()
+                     .Lookup("korisnik", "korisniciRef", "_id", "korisnici")
+                     .As<TeamBson>()
+                     .Match(t => t.ID == teamID)
+                     .FirstOrDefault();
 
-        //         var team = Context.Timovi.Where( t => t.ID == teamID ).Include(t => t.Korisnici).FirstOrDefault();
+                if(korisnik == null || team == null)
+                    return BadRequest("korisnik ne postoji");
+                if(!team.KorisniciRef.Contains(ObjectId.Parse(korisnik.ID)))
+                    return BadRequest("korisnik ne pripada timu"); 
 
-        //         if(korisnik == null || team == null)
-        //             return BadRequest("korisnik ne postoji");
-        //         if(!team.Korisnici.Contains(korisnik))
-        //             return BadRequest("korisnik ne pripada timu"); 
-
-        //         DateTime vremee = DateTime.Now;
-        //         Objava objava = new Objava{ Korisnik=korisnik, Team=team, Poruka=poruka, Vreme=vremee };
+                DateTime vremeSada = DateTime.Now;
+                Objava objava = new Objava
+                { 
+                    ID = ObjectId.GenerateNewId().ToString(),
+                    korisnikRef = korisnik.ID,
+                    poruka = poruka,
+                    vreme= vremeSada 
+                };
                 
-        //         Context.Objave.Add(objava);
-        //         Context.SaveChanges(); 
 
-        //         return Ok("objava je kreirana");
+                teamCollection.UpdateOne(Builders<Team>.Filter.Eq(t => t.ID, teamID), Builders<Team>.Update.Push(t => t.Objave, objava));
+                return Ok("objava je kreirana");
 
-        //     }catch(Exception e){
+            }catch(Exception e){
 
-        //         return BadRequest(e.Message);
+                return BadRequest(e.Message);
 
-        //     }
+            }
 
 
-        // }
+        }
 
-        // [Route("GetObjaveSve")]
-        // [HttpGet]
-        // public ActionResult GetObjaveSve()
-        // {
-        //     try
-        //     {
+        [Route("GetObjaveSve")]
+        [HttpGet]
+        public ActionResult GetObjaveSve()
+        {
+            try
+            {
                 
-        //         var username = User.FindFirstValue(ClaimTypes.Name);
-        //         var korisnik = Context.Korisnici.Include( t => t.Teams).ThenInclude(t => t.Korisnici).ThenInclude(o => o.Objave).Where( k => k.Username == username )
-        //                                         .FirstOrDefault();
-        //         List<Objava> lista = new List<Objava>(); 
+                var username = User.FindFirstValue(ClaimTypes.Name);
+                var korisnik = korisnikCollection.Find(k => k.Username == username).FirstOrDefault();
+               
+                var timovi = teamCollection.Find(t => t.KorisniciRef.Contains(ObjectId.Parse(korisnik.ID))).ToList();
 
-        //         foreach( var team in korisnik.Teams)
-        //         {
-        //             lista = lista.Concat(team.Objave).ToList();
-        //         }
+                List<Objava> lista = new List<Objava>(); 
 
-        //         return Ok(lista.Select(t => new {id = t.ID, poruka = t.Poruka, team = t.Team.Ime, vreme=t.Vreme, korisnik = t.Korisnik.Username}).ToList());
+                var objave = timovi.Select(t => t.Objave.Select(o => new {
+                                                    id = o.ID,
+                                                    poruka = o.poruka,
+                                                    team = t.Ime,
+                                                    vreme = o.vreme,
+                                                    korisnik = korisnikCollection.Find(k => k.ID == o.korisnikRef).FirstOrDefault().Username
+                })).SelectMany(t => t);
+                
+                return Ok(objave);
+                
 
-        //     }catch(Exception e)
-        //     {
-        //         return BadRequest(e.Message);
-        //     }
-        // }
+            }catch(Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
 
 
     }

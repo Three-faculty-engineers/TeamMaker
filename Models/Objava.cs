@@ -12,22 +12,17 @@ namespace Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public int ID { get; set; }
+        public string ID { get; set; }
         
-        [BsonIgnore]
-        public Team Team { get; set; }
-
-        [BsonElement("korisnik")]
-        public MongoDBRef KorisnikRef { get; set; }
-
-        [BsonIgnore]
-        public Korisnik Korisnik { get; set; }
+        
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string korisnikRef { get; set; }
 
         [BsonElement("vreme")]
-        public DateTime Vreme {get; set;}
+        public DateTime vreme {get; set;}
         
         [BsonElement("poruka")]
-        public string Poruka { get; set; }
+        public string poruka { get; set; }
 
 
     }
