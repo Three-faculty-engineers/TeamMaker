@@ -1,29 +1,7 @@
-# README #
+Preface: Web application with team/project management and SCRUM principles. Create or find your team with tasks and sprints. Add new users to it.
 
-This README would normally document whatever steps are necessary to get your application up and running.
+Back-end: .net core (c#) 
 
-### What is this repository for? ###
+Front-end: React.js with HTML and CSS.
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
-
-### How do I get set up? ###
-
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+Non-relational database: MongoDB (realised with MongoDB Driver for .net core)
