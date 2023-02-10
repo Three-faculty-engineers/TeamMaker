@@ -26,25 +26,7 @@ namespace WebApi.Controllers
             porukaCollection = dp.ConnectToMongo<Poruka>("poruka");
             korisnikCollection = dp.ConnectToMongo<Korisnik>("korisnik");
         }
-
-        // [HttpGet]
-        // [Route("GetPorukeKorisnik/{kor}")]
-
-        // // public ActionResult GetPoruke(int kor){
-
-        // //     try{
-        // //         var poruke= Context.Poruke.Where(o=>o.KorisnikRcv.ID==kor||o.KorisnikSnd.ID==kor);
-
-        // //         return Ok(poruke);
-        // //     }
-        // //     catch(Exception e)
-        // //     {
-        // //         return BadRequest(e.Message);
-        // //     }
-
-        // // }
-
-        
+       
         [HttpGet]
         [Route("GetChats")]
         public ActionResult GetChats()
@@ -53,24 +35,16 @@ namespace WebApi.Controllers
             {
                 var username = User.FindFirstValue(ClaimTypes.Name);
                 Korisnik k1 = korisnikCollection.Find(k => k.Username == username).FirstOrDefault();
-                string korID = k1.ID;
 
-                
-                var korisnici = porukaCollection.Aggregate()
-                    .Lookup("korisnik", "KorisnikSndRef", "_id", "korisniksnd")
-                    .Lookup("korisnik", "KorisnikRcvRef", "_id", "korisnikrcv")
-                    .As<Poruka>()
-                    .Match(k => k.KorisnikRcvRef == korID || k.KorisnikSndRef == korID)
-                    .ToList()
-                    .Select(p => new
-                    {
-                        ID = (p.KorisnikRcvRef == korID) ? p.KorisnikSndRef : p.KorisnikRcvRef,
-                        Username = (p.KorisnikRcvRef == korID) ? p.KorisnikSnd.Where(k => k.ID == p.KorisnikSndRef).Select(u => u.Username).FirstOrDefault()
-                                                                : p.KorisniRcv.Where(k => k.ID == p.KorisnikRcvRef).Select(u => u.Username).FirstOrDefault()
-                    }).ToList();
+                var korisnici = k1.PorukeRcv.Select(k => k.korisnikRef).Distinct().ToList();
+                korisnici.AddRange(k1.PorukeSnd.Select(k => k.korisnikRef).Distinct().ToList());
+            
 
-
-                return Ok(korisnici.Distinct());
+                return Ok(korisnici.Distinct().Select(k => new 
+                {
+                    ID = k,
+                    Username = korisnikCollection.Find(t => t.ID == k).FirstOrDefault().Username
+                }));
             }
             catch(Exception e)
             {
@@ -81,31 +55,39 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Route("GetPorukeIzmedjuDvaKor/{kor2ID}")]
-        public ActionResult GetPorukeIzmedjuDvaKor(string kor2ID) //front-end int?
+        public ActionResult GetPorukeIzmedjuDvaKor(string kor2ID) 
         {
             var username = User.FindFirstValue(ClaimTypes.Name);
             Korisnik k1 = korisnikCollection.Find(k => k.Username == username).FirstOrDefault();
             Korisnik k2 = korisnikCollection.Find(k => k.ID == kor2ID).FirstOrDefault();
           
-            string kor1ID = k1.ID;
-            try{
-                                        
+            
+            try
+            {
+                var por1 = k1.PorukeSnd.Where(p => p.korisnikRef == k2.ID).ToList().Select(p => new {
+                    ID = p.ID,                   
+                    KorisnikRcv = new { ID = k2.ID ,
+                        Username = k2.Username},
+                    KorisnikSnd = new { ID = k1.ID,
+                        Username = k1.Username},
+                    Tekst = p.Tekst,
+                    Vreme = p.Vreme
+                }).ToList();
 
-                var poruke = porukaCollection.Find(k => ((k.KorisnikRcvRef == kor1ID && k.KorisnikSndRef == kor2ID) ||
-                                                        (k.KorisnikRcvRef == kor2ID && k.KorisnikSndRef == kor1ID))).ToList().
-                                                        Select(p =>                                                       
-                                                        new
-                                                        {
-                                                            ID = p.ID,
-                                                            KorisnikRcv = new { ID = p.KorisnikRcvRef,
-                                                                Username = p.KorisnikRcvRef == kor1ID ? username : k2.Username},
-                                                            KorisnikSnd = new { ID = p.KorisnikSndRef,
-                                                                Username = p.KorisnikSndRef == kor1ID ? username : k2.Username},
-                                                            Tekst = p.Tekst,
-                                                            Vreme = p.Vreme
-                                                        });
-                                                                                            
-                return Ok(poruke);
+               var por2 = k1.PorukeRcv.Where(p => p.korisnikRef == k2.ID).ToList().Select(p => new {
+                    ID = p.ID,                    
+                    KorisnikRcv = new { ID = k1.ID ,
+                        Username = k1.Username},
+                    KorisnikSnd = new { ID = k2.ID,
+                        Username = k2.Username},
+                    Tekst = p.Tekst,
+                    Vreme = p.Vreme
+                }); 
+
+                por1.AddRange(por2);
+
+                return Ok(por1);
+                
 
             }
             catch(Exception e)
@@ -113,34 +95,6 @@ namespace WebApi.Controllers
                 return BadRequest(e.Message);
             }
         }
-
-        // [HttpGet]
-        // [Route("GetAllChats/{korID}")]
-
-        // public ActionResult GetAllChats(int korID)
-        // {
-        //     try{
-        //         var username = User.FindFirstValue(ClaimTypes.Name);
-        //         var korisnik = Context.Korisnici.Where( k => k.Username == username /*&& k.ID == korID*/).FirstOrDefault();
-        //         if(korisnik == null)
-        //             return BadRequest("bad request");
-
-        //         var s = porukaCollection.Find(k => k.KorisnikRcvRef == korisnik.ID).;
-        //         var d = porukaCollection.Find(k => k.KorisnikSndRef == korisnik.ID);
-        //         //var s=Context.Poruke.Where(k=>k.KorisnikRcvRef.ID==korID).Select(x=>x.KorisnikSnd).Distinct();
-        //         //var d=Context.Poruke.Where(k=>k.KorisnikSndRef.ID==korID).Select(x=>x.KorisnikRcv).Distinct();
-            
-        //         //var both = s.Concat(d).Distinct();
-        //         return Ok(s);
-
-
-              
-        //     }
-        //     catch(Exception e)
-        //     {
-        //         return BadRequest(e.Message);
-        //     }
-        // }
 
         [Route("CreatePoruka/{korUsername2}/{poruka}")]
         [HttpPost]
@@ -150,32 +104,38 @@ namespace WebApi.Controllers
 
             try
             {
-                var username = User.FindFirstValue(ClaimTypes.Name);
+                 var username = User.FindFirstValue(ClaimTypes.Name);
 
                   Korisnik k1 = korisnikCollection.Find(k => k.Username == username).First();
-               // Korisnik k1=Context.Korisnici.Where(k=>k.Username==username).First();
                   Korisnik k2 = korisnikCollection.Find(k => k.Username == korUsername2).First();  
-               // Korisnik k2=Context.Korisnici.Where(k=>k.Username==korUsername2).First();
+              
                 
                 if(k2 == null)
                     return BadRequest("Korisnik ne postoji");
 
-                DateTime vremee = DateTime.Now;
+                DateTime vremeSad = DateTime.Now;
 
-                if(k1!=null&&k2!=null){
+                Poruka porr = new Poruka
+                {
+                    ID = ObjectId.GenerateNewId().ToString(),
+                    Tekst = poruka,
+                    Vreme = vremeSad,
+                };  
+                //Iz razloga sto svaki korisnika ima snd i rcv poruke pa je suvisno da se npr. u send nizu atributu pamti i sendref i isto za rcv.
+                porr.korisnikRef = k2.ID;
+                korisnikCollection.UpdateOne(Builders<Korisnik>.Filter.Eq(t => t.ID, k1.ID), Builders<Korisnik>.Update.Push(t => t.PorukeSnd, porr));
 
-                Poruka porr = new Poruka{KorisnikSndRef=k1.ID,Tekst=poruka,KorisnikRcvRef=k2.ID,Vreme=vremee};
-                porukaCollection.InsertOne(porr);
-                //Context.Poruke.Add(porr)
-                //Context.SaveChanges(); 
+                
+                porr.korisnikRef = k1.ID;
+                korisnikCollection.UpdateOne(Builders<Korisnik>.Filter.Eq(t => t.ID, k2.ID), Builders<Korisnik>.Update.Push(t => t.PorukeRcv, porr));
+
 
                 return Ok(new 
                 {   userSent = k1.Username,
                     userReceived = k2.Username,
                     txt = porr.Tekst
                 });
-                }
-                return BadRequest("ne");
+                    
 
             }
             catch(Exception e)

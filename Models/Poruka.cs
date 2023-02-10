@@ -16,16 +16,7 @@ namespace Models
         public string ID { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public string KorisnikSndRef { get; set; }
-
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string KorisnikRcvRef { get; set; }
-
-        [BsonElement("korisniksnd")]
-        public List<Korisnik> KorisnikSnd { get; set; }
-
-        [BsonElement("korisnikrcv")]
-        public List<Korisnik> KorisniRcv { get; set; }
+        public string korisnikRef { get; set; }
 
         [BsonElement("vreme")]
         public DateTime Vreme {get; set;}
