@@ -15,12 +15,9 @@ namespace WebApi.Controllers
     [Route("[controller]")]
     public class TeamController : ControllerBase
     {
-    
-        public TeamMakerContext Context {get;set;}
         private IMongoCollection<Team> teamCollection;
         private IMongoCollection<Korisnik> korisnikCollection;
-        public TeamController(TeamMakerContext context){
-            Context=context;
+        public TeamController(){
             DataProvider dp = new DataProvider();
             teamCollection = dp.ConnectToMongo<Team>("team");
             korisnikCollection = dp.ConnectToMongo<Korisnik>("korisnik");
@@ -29,7 +26,7 @@ namespace WebApi.Controllers
         [Route("GetAllTeams")]
         [HttpGet]
         [Authorize]
-        public ActionResult GetAllTeams() // radi
+        public ActionResult GetAllTeams() 
         {
             try{
                 var teams = teamCollection
@@ -53,7 +50,7 @@ namespace WebApi.Controllers
 
         [Route("CreateTeam")]
         [HttpPost]
-        public ActionResult CreateTeam([FromBody] Team t) // radi
+        public ActionResult CreateTeam([FromBody] Team t) 
         {
             try{
                 if(string.IsNullOrEmpty(t.Ime) || string.IsNullOrEmpty(t.Opis))
@@ -98,7 +95,7 @@ namespace WebApi.Controllers
         {
             try
             {
-                // var tim = Context.Timovi.Include(t => t.Leader).Include(t => t.Korisnici).Where(t => t.ID == teamID).FirstOrDefault();
+                
                 var tim = teamCollection
                     .Aggregate()
                     .Lookup("korisnik", "leaderRef", "_id", "leader")
@@ -118,13 +115,13 @@ namespace WebApi.Controllers
 
         [Route("GetOwnTeams")]
         [HttpGet]
-        public ActionResult GetOwnTeams() // valjda radi
+        public ActionResult GetOwnTeams() 
         {
             try{ 
 
                 var username = User.FindFirstValue(ClaimTypes.Name);
                 var kor = korisnikCollection.Find(x=>x.Username == username).FirstOrDefault();
-                // var timovi = Context.Timovi.Include(x => x.Korisnici).Where(x=> x.Korisnici.Contains(kor)).ToList();
+                
                 var timovi = teamCollection
                 .Aggregate()
                 .Lookup("korisnik", "korisniciRef", "_id", "korisnici")
@@ -155,7 +152,7 @@ namespace WebApi.Controllers
 
         [Route("GetTeam/{teamID}")]
         [HttpGet]
-        public ActionResult getTeam([FromRoute] string teamID) // radi
+        public ActionResult getTeam([FromRoute] string teamID) 
         {
             try
             {
@@ -190,7 +187,7 @@ namespace WebApi.Controllers
                 var username = User.FindFirstValue(ClaimTypes.Name);
                 var korisnik = korisnikCollection.Find(k => k.Username == username).FirstOrDefault();
 
-                // var timovi = Context.Timovi.Include(x => x.Korisnici).Where(x => x.NeedsMembers == true && !x.Korisnici.Contains(korisnik)).ToList();
+                
                 var timovi = teamCollection
                 .Aggregate()
                 .Lookup("korisnik", "korisniciRef", "_id", "korisnici")
@@ -266,7 +263,7 @@ namespace WebApi.Controllers
                     return BadRequest("greska");
                 }
 
-                // Context.SaveChanges();
+                
                 teamCollection.UpdateOne(Builders<Team>.Filter.Eq(t => t.ID, team.ID), Builders<Team>.Update.Set(t => t.KorisniciRef, team.KorisniciRef));
 
                 return Ok("user removed");
@@ -283,9 +280,9 @@ namespace WebApi.Controllers
             {               
                 var team = authorizeLeader(teamID);
 
-                // team.NeedsMembers = flag;
                 
-                // Context.SaveChanges();
+                
+                
 
                 teamCollection.UpdateOne(Builders<Team>.Filter.Eq(t => t.ID, teamID), Builders<Team>.Update.Set(t => t.NeedsMembers, flag));
 

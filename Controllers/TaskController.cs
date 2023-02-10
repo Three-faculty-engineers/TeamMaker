@@ -15,12 +15,9 @@ namespace WebApi.Controllers
     [Authorize]
     public class TaskController : ControllerBase
     {
-        
-        public TeamMakerContext Context {get;set;}
         public IMongoCollection<Team> teamCollection;
         public IMongoCollection<Korisnik> korisnikCollection;
-        public TaskController(TeamMakerContext context){
-                Context=context;
+        public TaskController(){
                 DataProvider dp = new DataProvider();
                 teamCollection = dp.ConnectToMongo<Team>("team");
                 korisnikCollection = dp.ConnectToMongo<Korisnik>("korisnik");

@@ -29,6 +29,31 @@ namespace WebApi.Controllers
 
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("GetSprintsList/{teamID}")]
+
+        public ActionResult GetSprintsList([FromRoute] string teamID)
+        {
+            try
+            {
+                var team = teamCollection
+                    .Find(t => t.ID == teamID)
+                    .Project<Team>(Builders<Team>.Projection.Exclude(t => t.Sprints.Select(s => s.Taskovi)))
+                    .FirstOrDefault();
+
+
+                if(team == null)
+                    return BadRequest("tim ne postoji");
+
+                return Ok(team.Sprints);
+            }
+            catch(Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
 
         [HttpGet]
         [Route("GetSprints/{teamID}")]

@@ -6,39 +6,27 @@ import SendIcon from '../img/icons8-email-send-30.png'
 
 
 function Chat(props) {
-
-    //const [porukeRcv, setPorukeRcv] = useState([])//poruke koje smo dobili
-    //const [porukeSnd, setPorukeSnd] = useState([])//poruke koje smo poslali
     const [poruke, setPoruke] = useState([])
     const [username, setUsername] = useState("")
     const [tekst, setTekst] = useState("")
 
     useEffect(() => {
-
-        var div = document.getElementById("messageBox");
-        div.scrollTop = div.scrollHeight - div.clientHeight;
-
         setUsername(sessionStorage.getItem("username"))
-
+        
         const request = {
             method: 'GET',
             headers: {'Authorization': `bearer ${sessionStorage.getItem("jwt")}`}   
-        } 
-        // const myInterval = setInterval(() => {
-        //     setPoruke([])
-        // }, 1000);
-          // clear out the interval using the id when unmounting the component
-
-        //   if(poruke.length == 0){
-            fetch(`https://localhost:7013/Poruka/GetPorukeIzmedjuDvaKor/${props.kor2ID}`, request).then(response => {
-                if(response.ok)
-                response.json().then((porukelocal) => {
-                    setPoruke(porukelocal)      
-                })
+        }
+        
+        fetch(`https://localhost:7013/Poruka/GetPorukeIzmedjuDvaKor/${props.kor2ID}`, request).then(response => {
+            if(response.ok)
+            response.json().then((porukelocal) => {
+                setPoruke(porukelocal)      
+                var div = document.getElementById("messageBox");
+                div.scrollTop = div.scrollHeight;
             })
-        // }
-        // return () => clearInterval(myInterval);
-    }, [])
+        })
+    }, [props.kor2ID])
 
     const onSubmit = (event) => {
         event.preventDefault()

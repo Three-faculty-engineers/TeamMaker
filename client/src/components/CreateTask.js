@@ -6,34 +6,50 @@ function CreateTask(props) {
   
   const [ime, setIme] = useState("")
   const [opis, setOpis] = useState("")
-  const [status, setStatus] = useState(0)
-
-  // const onClick = () => {
-  //   alert("TEST");
-  // }
+  const [status, setStatus] = useState(1)
+  const [selectedSprint, setSelectedSprint] = useState("");
+  const [sprints, setSprints] = useState([]);
+  
   const onSubmit = (event) => {
     event.preventDefault()
 
     if(ime == "" || opis == "")
       return
 
+    if(!selectedSprint)
+    {
+      alert("Select sprint!");
+      return;
+    }
+
     const request = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' , 'Authorization': `bearer ${sessionStorage.getItem("jwt")}`},
-      body: JSON.stringify({'ime' : ime, 'opis' : opis, 'status' : status})
+      body: JSON.stringify({'ime' : ime, 'opis' : opis, 'status' : status, "sprint": {"id": selectedSprint}})
     } 
 
     fetch('https://localhost:7013/Task/CreateTask/' + props.teamID, request).then(response => {
       if(response.ok)
-          response.json().then((task) => {
-            props.addTask(task);
-            
-          })
-          
+      {
+        alert("Task successfully created!");
+      }
     })
 
 
   }
+
+  useEffect(() => {
+    fetch(`https://localhost:7013/Sprint/GetSprintsList/${props.teamID}`)
+      .then(response => {
+        if(response.ok)
+        {
+          response.json()
+            .then(sprints => {
+              setSprints(sprints);
+            })
+        }
+      })
+  }, [])
   
 
 
@@ -61,6 +77,15 @@ function CreateTask(props) {
             <Form.Control type='text' placeholder='opis'
                 value = {opis} onChange= { (e) => 
                 setOpis(e.target.value) }/>
+        </Form.Group>
+
+        <Form.Group className='form-cont'>
+            <Form.Label>Sprint</Form.Label>
+
+            <Form.Select onChange={(e) => setSelectedSprint(e.target.value)}>
+              <option value="">Select sprint</option>
+              {sprints.map(sprint => <option value={sprint.id} key={sprint.id}>{sprint.opis}</option>)}
+            </Form.Select>
         </Form.Group>
 
         <Button variant='dark' className='button' type='submit'>Create</Button>
