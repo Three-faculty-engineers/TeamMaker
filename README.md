@@ -4,4 +4,4 @@ Back-end: .net core (c#)
 
 Front-end: React.js with HTML and CSS.
 
-Non-relation database: MongoDB (realised with MongoDB Driver for .net core)
+Non-relational database: MongoDB (realised with MongoDB Driver for .net core)
