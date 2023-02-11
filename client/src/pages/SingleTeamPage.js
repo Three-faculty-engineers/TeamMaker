@@ -78,8 +78,8 @@ function SingleTeamPage()
           <li className='obojenoHover' onClick={() => {changeSidebar(0)}}>TEAM INFO</li>
           <li className='obojenoHover' onClick={() => {changeSidebar(1)}}>BACKLOG</li>
           <li className='obojenoHover' onClick={() => {changeSidebar(2)}}>ACTIVE SPRINTS</li>
-          <li className='obojenoHover' onClick={() => {changeSidebar(3)}}>FINISHED SPRINTS</li>
-          <li className='obojenoHover' onClick={() => {changeSidebar(4)}}>CHARTS</li>
+          {/* <li className='obojenoHover' onClick={() => {changeSidebar(3)}}>FINISHED SPRINTS</li> */}
+          {/* <li className='obojenoHover' onClick={() => {changeSidebar(4)}}>CHARTS</li> */}
           <li className='obojenoHover' onClick={() => {changeSidebar(5)}}>NOTIFICATIONS</li>
           {isLeader && <li className='obojenoHover' onClick={() => {changeSidebar(6)}}>LEADER PAGE</li>}
 
@@ -89,8 +89,8 @@ function SingleTeamPage()
         { (sidebarState == 0) && <TeamInfo teamID = {team.id} teamOpis={team.opis} isLeader = {isLeader} clanovi = {clanovi} images = {images}  />}
         { (sidebarState == 1) && <Backlog teamID = {team.id} setSidebarState = {setSidebarState} /> }
         { (sidebarState == 2) && <SprintList teamID = {team.id} isLeader = {isLeader} status = {0}/> }
-        { (sidebarState == 3) && <SprintList teamID = {team.id} isLeader = {isLeader} status = {1}/> }
-        { (sidebarState == 4) && <ChartList teamID = {team.id} isLeader = {isLeader} /> }
+        {/* { (sidebarState == 3) && <SprintList teamID = {team.id} isLeader = {isLeader} status = {1}/> } */}
+        {/* { (sidebarState == 4) && <ChartList teamID = {team.id} isLeader = {isLeader} /> } */}
         { (sidebarState == 5) && <Notifications teamID = {team.id} /> }
         { (sidebarState == 6) && <TeamLeader teamID = {team.id} setClanovi = {setClanovi} clanovi = {clanovi} team = {team} setTeam = {setTeam}/> }
         </div>
